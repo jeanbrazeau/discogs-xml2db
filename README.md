@@ -54,13 +54,11 @@ location, which does not require elevated security permissions:
 
 ```sh
 # Create a virtual environment and activate it
-$ python3 -m venv .discogsenv
+$ python3 -m venv venv
 
 # Activate virtual environment
 # On Linux/macOS:
-$ source .discogsenv/bin/activate
-# on Windows, in Powershell
-$ .discogsenv\Scripts\Activate.ps1
+$ source venv/bin/activate
 
 # Install requirements:
 (.discogsenv) $ pip3 install -r requirements.txt
@@ -84,6 +82,19 @@ $ sha256sum -c discogs_*_CHECKSUM.txt
 
 ### Converting dumps to CSV
 
+
+# HERE IS THE CODE TO RUN  IF USING THE DATA_DUMP DIR.#
+
+python3 run.py \
+  --bz2 \
+  --apicounts \
+  --output "/Volumes/T7_RED/discocypher/data_dump" \
+  "/Volumes/T7_RED/discocypher/data_dump/discogs_20241201_masters.xml" \
+  "/Volumes/T7_RED/discocypher/data_dump/discogs_20241201_artists.xml" \
+  "/Volumes/T7_RED/discocypher/data_dump/discogs_20241201_labels.xml" \
+  "/Volumes/T7_RED/discocypher/data_dump/discogs_20241201_releases.xml"
+
+  
 Run `run.py` to convert the dump files to csv.
 
 There are two run modes:

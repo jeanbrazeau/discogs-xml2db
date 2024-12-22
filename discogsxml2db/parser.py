@@ -113,18 +113,35 @@ class DiscogsArtistParser(DiscogsDumpEntityParser):
 
     # <members><id>26</id><name>Alexi Delano</name><id>27</id><name>Cari Lekebusch</name></members>
     def element_members(self, element):
-        for id, name in grouper([child.text for child in element.iterchildren()], 2):
-            yield int(id), name.strip()
+        for child in element.iterchildren():
+            if child.tag == 'name':
+                # If we don't have an ID, generate one from the name
+                name = child.text.strip()
+                generated_id = abs(hash(name)) % (10 ** 8)  # Create a stable numeric ID from name
+                yield generated_id, name
+            elif child.tag == 'id' and child.getnext() is not None and child.getnext().tag == 'name':
+                # Handle the case where we have both id and name
+                id_text = child.text
+                name = child.getnext().text
+                try:
+                    artist_id = int(id_text)
+                except (ValueError, TypeError):
+                    # If ID isn't valid, generate one from the name
+                    artist_id = abs(hash(name)) % (10 ** 8)
+                yield artist_id, name.strip()
 
     def build_entity(self, entity_id, element):
         artist = Artist()
         artist.id = entity_id
+        # Initialize name with a default value
+        artist.name = None
+        
         for e in element.iterchildren():
             t = e.tag
             if t in ('data_quality',
-                     'name',
-                     'realname',
-                     'profile'):
+                    'name',
+                    'realname',
+                    'profile'):
                 setattr(artist, t, gettext_stripped(e))
 
             # <aliases><name>some name</name>...
@@ -132,15 +149,19 @@ class DiscogsArtistParser(DiscogsDumpEntityParser):
             # <groups><name>some name</name>...
             # <urls><url>http://www.joshwink.com/</url>...
             elif t in ('aliases',
-                       'namevariations',
-                       'groups',
-                       'urls'):
+                    'namevariations',
+                    'groups',
+                    'urls'):
                 setattr(artist, t, list(self.children_text(e)))
             elif t in ('images',):
                 setattr(artist, t, list(self.element_attributes(e, ImageInfo)))
             elif t == 'members':
                 setattr(artist, t, list(self.element_members(e)))
-
+        
+        # If we still don't have a name, use a placeholder
+        if artist.name is None:
+            artist.name = f"Unknown Artist {entity_id}"
+        
         return artist
 
 
@@ -151,22 +172,31 @@ class DiscogsLabelParser(DiscogsDumpEntityParser):
     def build_entity(self, entity_id, element):
         label = Label()
         label.id = entity_id
+        # Initialize name with a default value
+        label.name = None
+        
         for e in element.iterchildren():
             t = e.tag
             if t in ('data_quality',
-                     'contactinfo',
-                     'name',
-                     'profile',
-                     'parentLabel'):
+                    'contactinfo',
+                    'name',
+                    'profile',
+                    'parentLabel'):
                 setattr(label, t, gettext_stripped(e))
 
             elif t in ('sublabels',
-                       'urls'):
+                    'urls'):
                 setattr(label, t, list(self.children_text(e)))
 
             elif t in ('images'):
                 setattr(label, t, list(self.element_attributes(e, ImageInfo)))
+        
+        # If we still don't have a name, use a placeholder
+        if label.name is None:
+            label.name = f"Unknown Label {entity_id}"
+            
         return label
+
 
 
 class DiscogsMasterParser(DiscogsDumpEntityParser):

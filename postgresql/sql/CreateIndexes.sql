@@ -37,3 +37,11 @@ CREATE INDEX release_identifier_idx_release ON release_identifier (release_id);
 CREATE INDEX release_video_idx_release ON release_video (release_id);
 CREATE INDEX release_company_idx_release ON release_company (release_id);
 CREATE INDEX release_company_idx_company ON release_company (company_id);
+
+--- api statistics
+CREATE INDEX statistics_idx_release_id ON api_statistics (release_id);
+CREATE INDEX statistics_idx_wants ON api_statistics (wants);
+CREATE INDEX statistics_idx_haves ON api_statistics (haves);
+CREATE INDEX statistics_idx_avg_rating ON api_statistics (avg_rating);
+CREATE INDEX statistics_idx_copies_for_sale ON api_statistics (copies_for_sale);
+CREATE INDEX statistics_idx_lowest_price ON api_statistics (for_sale_from);
